@@ -5,7 +5,7 @@ import Image from "next/image";
 export default function Home() {
   return (
     <div>
-      <Tile title="ContextAI" description="LLM app" href="/" size="sm" />
+      <Tile title="Context AI" description="LLM app" href="/" size="sm" />
       <Translator />
     </div>
   );
