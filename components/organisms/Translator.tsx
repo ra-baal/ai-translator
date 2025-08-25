@@ -1,34 +1,54 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Textarea } from '../atoms/shadcn/textarea';
+import { Label } from '../atoms/shadcn/label';
+import { SelectGroup } from '@radix-ui/react-select';
+import MSelector from '../molecules/MSelector';
 
 interface TranslatorProps {
     className?: string;
 }
 
+enum Language {
+    English = 'en',
+    Polish = 'pl',
+    German = 'de',
+    Undefined = 'undefined'
+}
+
+const transform = <T, G>(x: T, f: (x: T) => G): G => {
+    return f(x);
+}
+
+const langObj = (lang: Language): {
+    labelNative: string,
+    labelEN: string
+} => {
+    switch (lang) {
+        case Language.English: return { labelNative: 'English', labelEN: 'English' };
+        case Language.Polish: return { labelNative: 'polski', labelEN: 'Polish' };
+        case Language.German: return { labelNative: 'Deutsch', labelEN: 'German' };
+        case Language.Undefined: return { labelNative: '?', labelEN: '?' };
+        default: return { labelNative: '', labelEN: '' };
+    }
+}
+
 const Translator: React.FC<TranslatorProps> = ({ className = '' }) => {
-    const [context, setContext] = useState('');
     const [text, setText] = useState('');
     const [translation, setTranslation] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-
-    function createTranslationPrompt2(): string {
-        const instruction =
-            'Translate the following text into English. ' +
-            'Provide a literal, word-for-word translation' + (context ? '. appropriate for the given context. ' : '. ') +
-            'Output only the translated text, with no explanations, notes, or extra words.\n';
-
-        const contextPart = context ? `Context: ${context}\n` : '';
-        const textPart = `Text: ${text}`;
-
-        return instruction + contextPart + textPart;
-    }
+    const [langStart, setLangStart] = useState<Language>(Language.Undefined);
+    const [langTarget, setLangTarget] = useState<Language>(Language.English);
 
     function createTranslationPrompt(): string {
+        const context = undefined;
         const instruction =
-            'Translate the following text into English. ' +
+            'Translate the following text ' +
+            (langStart === Language.Undefined ? '' : `from ${langObj(langStart).labelEN} `) +
+            `into ${langObj(langTarget).labelEN}. ` +
             (context ? 'Use the context to choose the correct meaning for the translation. ' : '') +
-            'Output only the translated text, with no explanations, notes, or extra words.\n';
+            'Output ONLY json {translation: "string"}\n';
 
         const contextPart = context ? `Context (for understanding meaning): ${context}\n` : '';
         const textPart = `Text to translate: ${text}`;
@@ -62,7 +82,9 @@ const Translator: React.FC<TranslatorProps> = ({ className = '' }) => {
 
             const data = await response.json();
 
-            setTranslation(data.response ?? '');
+            const t = data?.response ? JSON.parse(data.response) : '';
+
+            setTranslation(t?.translation ?? '');
         } catch (error) {
             console.error('Error sending message:', error);
             setTranslation('');
@@ -72,55 +94,69 @@ const Translator: React.FC<TranslatorProps> = ({ className = '' }) => {
     };
 
     const handleClear = () => {
-        setContext('');
         setText('');
         setTranslation('');
-    };
-
+    }
 
     return (
-        <div className={`max - w - 4xl mx - auto p - 6 space - y - 6 ${className} `}>
+        <div className={`max-w-4xl mx-auto p-6 ${className}`}>
             <div className="text-center">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
                     Translator
                 </h2>
-                <p className="text-gray-600 dark:text-gray-400">
-                    Provide context and text to get accurate translations
-                </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Context Input */}
-                <div className="space-y-2">
-                    <label htmlFor="context" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Context
-                    </label>
-                    <textarea
-                        id="context"
-                        value={context}
-                        onChange={(e) => setContext(e.target.value)}
-                        placeholder="Provide context for better translation accuracy..."
-                        className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 resize-none"
-                    />
-                </div>
+            <MSelector
+                label='Language'
+                onChange={val => {
+                    setLangStart(val ? val as Language : Language.Undefined)
+                }}
+                defaultValue={Language.Undefined}
+                options={[
+                    transform(Language.Undefined, l => ({ label: 'detect language', value: l })),
+                    transform(Language.Polish, l => ({ label: langObj(l).labelNative, value: l })),
+                    transform(Language.English, l => ({ label: langObj(l).labelNative, value: l })),
+                    transform(Language.German, l => ({ label: langObj(l).labelNative, value: l })),
+                ]} />
 
+            <MSelector
+                label='Target language'
+                onChange={val => {
+                    setLangTarget(val ? val as Language : Language.Undefined)
+                }}
+                defaultValue={Language.English}
+                options={[
+                    transform(Language.English, l => ({ label: langObj(l).labelNative, value: l })),
+                    transform(Language.Polish, l => ({ label: langObj(l).labelNative, value: l })),
+                    transform(Language.German, l => ({ label: langObj(l).labelNative, value: l })),
+                ]} />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Text Input */}
                 <div className="space-y-2">
-                    <label htmlFor="text" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Text to Translate
-                    </label>
-                    <textarea
-                        id="text"
+                    <Label htmlFor='translator-text'>Text to translate</Label>
+                    <Textarea
+                        id='translator-text'
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         placeholder="Enter the text you want to translate..."
                         className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 resize-none"
                     />
                 </div>
+                <div className="space-y-2">
+                    <Label htmlFor='translator-translation'>Translation</Label>
+                    {isLoading && <p>Loading...</p>}
+                    {!isLoading && <Textarea
+                        id='translator-translation'
+                        value={translation}
+                        className="disabled:opacity-100 disabled:cursor-default w-full h-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 resize-none"
+                        disabled={true}
+                    />}
+                </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center space-x-4 mt-3">
                 <button
                     onClick={handleTranslate}
                     disabled={!text.trim()}
@@ -136,19 +172,6 @@ const Translator: React.FC<TranslatorProps> = ({ className = '' }) => {
                 </button>
             </div>
 
-            {/* Translation Output */}
-            {/* {translation && ( */}
-            <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Translation
-                </label>
-                <div className="w-full min-h-32 px-3 py-2 border border-gray-300 rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-600">
-                    <p className="text-gray-900 dark:text-white whitespace-pre-wrap">
-                        {translation}
-                    </p>
-                </div>
-            </div>
-            {/* )} */}
         </div>
     );
 };
