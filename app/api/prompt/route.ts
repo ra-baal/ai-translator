@@ -24,6 +24,11 @@ export async function POST(request: NextRequest) {
 
     // Check if GROQ_API_KEY is available
     const groqApiKey = process.env.GROQ_API_KEY;
+    console.log(
+      groqApiKey != undefined
+        ? `${groqApiKey.slice(0, 4)}...${groqApiKey.slice(-4)}`
+        : "undefined"
+    );
     if (!groqApiKey) {
       return NextResponse.json(
         { error: "GROQ_API_KEY is not configured" },
