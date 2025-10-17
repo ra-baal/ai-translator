@@ -119,14 +119,14 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
       </div>
 
       <MSelector
-        label="Language"
+        label="Choose language"
         onChange={(val) => {
           setLangStart(val ? (val as Language) : Language.Undefined);
         }}
         defaultValue={Language.Undefined}
         options={[
           transform(Language.Undefined, (l) => ({
-            label: "detect language",
+            label: "unknown language",
             value: l,
           })),
           transform(Language.Polish, (l) => ({
