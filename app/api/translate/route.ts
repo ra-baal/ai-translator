@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import createPromptBuilder from "../_services/promptBuilder";
-import { Either, left } from "@/common/either";
+import { Either, left, right } from "@/common/either";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      response: aiResponse,
+      response: aiResponse.right,
       status: 200,
     });
   } catch (error) {
@@ -123,5 +123,60 @@ async function requestLLM(
     return left("no LLM response");
   }
 
-  return aiResponse;
+  return right(aiResponse);
+}
+
+interface GroqResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
+
+function ensureGroqResponse(x: unknown): GroqResponse {
+  if (isGroqResponse(x)) {
+    return x;
+  }
+
+  throw new Error("Invalid type");
+}
+
+function isGroqResponse(x: unknown): x is GroqResponse {
+  return (
+    isObj(x) &&
+    Array.isArray(x.choices) &&
+    x.choices.every(
+      (choice) =>
+        isObj(choice) &&
+        isObj(choice.message) &&
+        typeof choice.message.content === "string"
+    )
+  );
+}
+
+function isObj(x: unknown): x is Record<string, unknown> {
+  return x && typeof x === "object" && !Array.isArray(x) ? true : false;
+}
+
+function ensureObject(x: unknown): Record<string, unknown> {
+  if (isObj(x)) {
+    return x;
+  }
+  throw new Error("Invalid type");
+}
+
+function ensureString(x: unknown): string {
+  if (typeof x === "string") {
+    return x;
+  }
+
+  throw new Error("Invalid type");
+}
+
+function ensureArray(x: unknown): unknown[] {
+  if (Array.isArray(x)) {
+    return x;
+  }
+  throw new Error("Invalid type");
 }

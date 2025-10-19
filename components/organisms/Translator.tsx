@@ -3,19 +3,20 @@
 import React, { useState } from "react";
 import { Textarea } from "../atoms/shadcn/textarea";
 import { Label } from "../atoms/shadcn/label";
-import { SelectGroup } from "@radix-ui/react-select";
 import MSelector from "../molecules/MSelector";
 
 interface TranslatorProps {
   className?: string;
 }
 
-enum Language {
-  English = "en",
-  Polish = "pl",
-  German = "de",
-  Undefined = "undefined",
-}
+const Languages = {
+  English: "en",
+  Polish: "pl",
+  German: "de",
+  Undefined: "undefined",
+} as const;
+
+type Language = (typeof Languages)[keyof typeof Languages];
 
 const transform = <T, G>(x: T, f: (x: T) => G): G => {
   return f(x);
@@ -28,13 +29,13 @@ const langObj = (
   labelEN: string;
 } => {
   switch (lang) {
-    case Language.English:
+    case Languages.English:
       return { labelNative: "English", labelEN: "English" };
-    case Language.Polish:
+    case Languages.Polish:
       return { labelNative: "polski", labelEN: "Polish" };
-    case Language.German:
+    case Languages.German:
       return { labelNative: "Deutsch", labelEN: "German" };
-    case Language.Undefined:
+    case Languages.Undefined:
       return { labelNative: "?", labelEN: "?" };
     default:
       return { labelNative: "", labelEN: "" };
@@ -45,8 +46,8 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
   const [text, setText] = useState("");
   const [translation, setTranslation] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [langStart, setLangStart] = useState<Language>(Language.Undefined);
-  const [langTarget, setLangTarget] = useState<Language>(Language.English);
+  const [langStart, setLangStart] = useState<Language>(Languages.Undefined);
+  const [langTarget, setLangTarget] = useState<Language>(Languages.English);
 
   // function createTranslationPrompt(): string {
   //   const context = undefined;
@@ -86,7 +87,7 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
           text: text,
           targetLanguage: langObj(langTarget).labelEN,
           sourceLanguage:
-            langStart == Language.Undefined
+            langStart == Languages.Undefined
               ? undefined
               : langObj(langStart).labelEN,
           context: null,
@@ -128,23 +129,23 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
       <MSelector
         label="Choose language"
         onChange={(val) => {
-          setLangStart(val ? (val as Language) : Language.Undefined);
+          setLangStart(val ? (val as Language) : Languages.Undefined);
         }}
-        defaultValue={Language.Undefined}
+        defaultValue={Languages.Undefined}
         options={[
-          transform(Language.Undefined, (l) => ({
+          transform(Languages.Undefined, (l) => ({
             label: "unknown language",
             value: l,
           })),
-          transform(Language.Polish, (l) => ({
+          transform(Languages.Polish, (l) => ({
             label: langObj(l).labelNative,
             value: l,
           })),
-          transform(Language.English, (l) => ({
+          transform(Languages.English, (l) => ({
             label: langObj(l).labelNative,
             value: l,
           })),
-          transform(Language.German, (l) => ({
+          transform(Languages.German, (l) => ({
             label: langObj(l).labelNative,
             value: l,
           })),
@@ -154,19 +155,19 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
       <MSelector
         label="Target language"
         onChange={(val) => {
-          setLangTarget(val ? (val as Language) : Language.Undefined);
+          setLangTarget(val ? (val as Language) : Languages.Undefined);
         }}
-        defaultValue={Language.English}
+        defaultValue={Languages.English}
         options={[
-          transform(Language.English, (l) => ({
+          transform(Languages.English, (l) => ({
             label: langObj(l).labelNative,
             value: l,
           })),
-          transform(Language.Polish, (l) => ({
+          transform(Languages.Polish, (l) => ({
             label: langObj(l).labelNative,
             value: l,
           })),
-          transform(Language.German, (l) => ({
+          transform(Languages.German, (l) => ({
             label: langObj(l).labelNative,
             value: l,
           })),
