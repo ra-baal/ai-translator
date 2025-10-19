@@ -48,43 +48,48 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
   const [langStart, setLangStart] = useState<Language>(Language.Undefined);
   const [langTarget, setLangTarget] = useState<Language>(Language.English);
 
-  function createTranslationPrompt(): string {
-    const context = undefined;
-    const instruction =
-      "Translate the following text " +
-      (langStart === Language.Undefined
-        ? ""
-        : `from ${langObj(langStart).labelEN} `) +
-      `into ${langObj(langTarget).labelEN}. ` +
-      (context
-        ? "Use the context to choose the correct meaning for the translation. "
-        : "") +
-      'Output ONLY json {translation: "string"}\n';
+  // function createTranslationPrompt(): string {
+  //   const context = undefined;
+  //   const instruction =
+  //     "Translate the following text " +
+  //     (langStart === Language.Undefined
+  //       ? ""
+  //       : `from ${langObj(langStart).labelEN} `) +
+  //     `into ${langObj(langTarget).labelEN}. ` +
+  //     (context
+  //       ? "Use the context to choose the correct meaning for the translation. "
+  //       : "") +
+  //     'Output ONLY json {translation: "string"}\n';
 
-    const contextPart = context
-      ? `Context (for understanding meaning): ${context}\n`
-      : "";
-    const textPart = `Text to translate: ${text}`;
+  //   const contextPart = context
+  //     ? `Context (for understanding meaning): ${context}\n`
+  //     : "";
+  //   const textPart = `Text to translate: ${text}`;
 
-    return instruction + contextPart + textPart;
-  }
+  //   return instruction + contextPart + textPart;
+  // }
 
   const handleTranslate = async () => {
     if (!text.trim() || isLoading) return;
 
     setIsLoading(true);
 
-    const prompt = createTranslationPrompt();
+    // const prompt = createTranslationPrompt();
 
     try {
-      const response = await fetch("/api/prompt", {
+      const response = await fetch("/api/translate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: prompt,
-          history: [],
+          text: text,
+          targetLanguage: langObj(langTarget).labelEN,
+          sourceLanguage:
+            langStart == Language.Undefined
+              ? undefined
+              : langObj(langStart).labelEN,
+          context: null,
         }),
       });
 
@@ -94,9 +99,11 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
 
       const data = await response.json();
 
-      const t = data?.response ? JSON.parse(data.response) : "";
+      // const t = data?.response ? JSON.parse(data.response) : "";
+      const t = data?.response ?? "";
 
-      setTranslation(t?.translation ?? "");
+      // setTranslation(t?.translation ?? "");
+      setTranslation(t);
     } catch (error) {
       console.error("Error sending message:", error);
       setTranslation("");
