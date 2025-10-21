@@ -127,31 +127,31 @@ async function requestLLM(
   return right(aiResponse);
 }
 
-interface GroqResponse {
-  choices: Array<{
-    message: {
-      content: string;
-    };
-  }>;
-}
+// interface GroqResponse {
+//   choices: Array<{
+//     message: {
+//       content: string;
+//     };
+//   }>;
+// }
 
-function ensureGroqResponse(x: unknown): GroqResponse {
-  if (isGroqResponse(x)) {
-    return x;
-  }
+// function ensureGroqResponse(x: unknown): GroqResponse {
+//   if (isGroqResponse(x)) {
+//     return x;
+//   }
 
-  throw new Error("Invalid type");
-}
+//   throw new Error("Invalid type");
+// }
 
-function isGroqResponse(x: unknown): x is GroqResponse {
-  return (
-    is.obj(x) &&
-    Array.isArray(x.choices) &&
-    x.choices.every(
-      (choice) =>
-        is.obj(choice) &&
-        is.obj(choice.message) &&
-        typeof choice.message.content === "string"
-    )
-  );
-}
+// function isGroqResponse(x: unknown): x is GroqResponse {
+//   return (
+//     is.obj(x) &&
+//     Array.isArray(x.choices) &&
+//     x.choices.every(
+//       (choice) =>
+//         is.obj(choice) &&
+//         is.obj(choice.message) &&
+//         typeof choice.message.content === "string"
+//     )
+//   );
+// }
