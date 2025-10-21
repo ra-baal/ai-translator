@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Label } from "../atoms/shadcn/label";
 import { Textarea } from "../atoms/shadcn/textarea";
 
@@ -7,6 +8,7 @@ interface TextAreaGroupProps {
   onChange: (val: string) => void;
   placeholder?: string;
   readOnly?: boolean;
+  className?: string;
 }
 
 export const TextAreaGroup = ({
@@ -15,16 +17,17 @@ export const TextAreaGroup = ({
   onChange,
   placeholder = "",
   readOnly = false,
+  className = "",
 }: TextAreaGroupProps) => {
   return (
-    <div className="flex flex-col gap-1">
-      <Label>{label}</Label>
+    <div className={cn("flex flex-col gap-1 w-full", className)}>
+      <Label className="text-sm md:text-base">{label}</Label>
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         readOnly={readOnly}
-        className="resize-none p-2 border rounded-md"
+        className="w-full resize-none p-2 border rounded-md text-sm md:text-base"
       />
     </div>
   );

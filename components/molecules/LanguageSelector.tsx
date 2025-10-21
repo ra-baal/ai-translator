@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { Label } from "../atoms/shadcn/label";
 import {
   Select,
@@ -12,6 +13,7 @@ interface LanguageSelectorProps {
   value: string;
   onChange: (val: string) => void;
   options: { label: string; value: string }[];
+  className?: string;
 }
 
 export const LanguageSelector = ({
@@ -19,12 +21,13 @@ export const LanguageSelector = ({
   value,
   onChange,
   options,
+  className = "",
 }: LanguageSelectorProps) => {
   return (
-    <div className="flex flex-col gap-1">
-      <Label>{label}</Label>
+    <div className={cn("flex flex-col gap-1 w-full", className)}>
+      <Label className="text-sm md:text-base">{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger>
+        <SelectTrigger className="w-full p-2 border rounded-md text-sm md:text-base">
           <SelectValue placeholder="Select language" />
         </SelectTrigger>
         <SelectContent>
