@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import createPromptBuilder from "../_services/promptBuilder";
 import { Either, left, right } from "@/common/either";
 import { is } from "@/common/is";
+import { ensure } from "@/common/ensure";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
@@ -17,7 +18,10 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: RequestBody = await request.json();
+    const body = ensure.objectWithFields<RequestBody>(await request.json(), {
+      text: "",
+      targetLanguage: "",
+    });
 
     const r = require([
       [body.text, "text"],
@@ -127,31 +131,31 @@ async function requestLLM(
   return right(aiResponse);
 }
 
-// interface GroqResponse {
-//   choices: Array<{
-//     message: {
-//       content: string;
-//     };
-//   }>;
-// }
+interface GroqResponse {
+  choices: Array<{
+    message: {
+      content: string;
+    };
+  }>;
+}
 
-// function ensureGroqResponse(x: unknown): GroqResponse {
-//   if (isGroqResponse(x)) {
-//     return x;
-//   }
+function ensureGroqResponse(x: unknown): GroqResponse {
+  if (isGroqResponse(x)) {
+    return x;
+  }
 
-//   throw new Error("Invalid type");
-// }
+  throw new Error("Invalid type");
+}
 
-// function isGroqResponse(x: unknown): x is GroqResponse {
-//   return (
-//     is.obj(x) &&
-//     Array.isArray(x.choices) &&
-//     x.choices.every(
-//       (choice) =>
-//         is.obj(choice) &&
-//         is.obj(choice.message) &&
-//         typeof choice.message.content === "string"
-//     )
-//   );
-// }
+function isGroqResponse(x: unknown): x is GroqResponse {
+  return (
+    is.obj(x) &&
+    Array.isArray(x.choices) &&
+    x.choices.every(
+      (choice) =>
+        is.obj(choice) &&
+        is.obj(choice.message) &&
+        typeof choice.message.content === "string"
+    )
+  );
+}

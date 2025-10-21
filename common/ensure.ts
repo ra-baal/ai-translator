@@ -5,8 +5,8 @@ const msg = "Invalid type";
 interface Ensure {
   array: (x: unknown) => unknown[];
   object: (x: unknown) => Record<string, unknown>;
-  objectWithFields<T extends Record<string, unknown>>(x: unknown, t: T): T;
-  objectWithKeys<T extends Record<string, unknown>>(x: unknown, t: T): T;
+  objectWithFields<T extends NonNullable<object>>(x: unknown, t: T): T;
+  objectWithKeys<T extends NonNullable<object>>(x: unknown, t: T): T;
 }
 
 export const ensure: Ensure = {
@@ -26,10 +26,7 @@ export const ensure: Ensure = {
     throw new Error(msg);
   },
 
-  objectWithFields: function <T extends Record<string, unknown>>(
-    x: unknown,
-    t: T
-  ) {
+  objectWithFields: function <T extends NonNullable<object>>(x: unknown, t: T) {
     const obj = ensure.object(x);
 
     Object.keys(t).forEach((key: string) => {
@@ -40,7 +37,7 @@ export const ensure: Ensure = {
       }
 
       const val_in_obj = obj[key];
-      const val_in_t = t[key];
+      const val_in_t = t[key as keyof T];
       const isSameType = is.sameType(val_in_obj, val_in_t);
 
       if (!isSameType) {
@@ -51,10 +48,7 @@ export const ensure: Ensure = {
     return x as T;
   },
 
-  objectWithKeys: function <T extends Record<string, unknown>>(
-    x: unknown,
-    t: T
-  ) {
+  objectWithKeys: function <T extends NonNullable<object>>(x: unknown, t: T) {
     const obj = ensure.object(x);
 
     Object.keys(t).forEach((key: string) => {

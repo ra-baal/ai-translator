@@ -1,3 +1,4 @@
+import { ensure } from "@/common/ensure";
 import { NextRequest, NextResponse } from "next/server";
 
 interface ChatMessage {
@@ -12,7 +13,13 @@ interface RequestBody {
 
 export async function POST(request: NextRequest) {
   try {
-    const body: RequestBody = await request.json();
+    const body: RequestBody = ensure.objectWithKeys<RequestBody>(
+      await request.json(),
+      {
+        message: "",
+        history: [],
+      }
+    );
     const { message, history } = body;
 
     if (!message) {
