@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Textarea } from "../atoms/shadcn/textarea";
 import { Label } from "../atoms/shadcn/label";
 import MSelector from "../molecules/MSelector";
+import { ensure } from "@/common/ensure";
 
 interface TranslatorProps {
   className?: string;
@@ -49,33 +50,10 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
   const [langStart, setLangStart] = useState<Language>(Languages.Undefined);
   const [langTarget, setLangTarget] = useState<Language>(Languages.English);
 
-  // function createTranslationPrompt(): string {
-  //   const context = undefined;
-  //   const instruction =
-  //     "Translate the following text " +
-  //     (langStart === Language.Undefined
-  //       ? ""
-  //       : `from ${langObj(langStart).labelEN} `) +
-  //     `into ${langObj(langTarget).labelEN}. ` +
-  //     (context
-  //       ? "Use the context to choose the correct meaning for the translation. "
-  //       : "") +
-  //     'Output ONLY json {translation: "string"}\n';
-
-  //   const contextPart = context
-  //     ? `Context (for understanding meaning): ${context}\n`
-  //     : "";
-  //   const textPart = `Text to translate: ${text}`;
-
-  //   return instruction + contextPart + textPart;
-  // }
-
   const handleTranslate = async () => {
     if (!text.trim() || isLoading) return;
 
     setIsLoading(true);
-
-    // const prompt = createTranslationPrompt();
 
     try {
       const response = await fetch("/api/translate", {
@@ -98,13 +76,11 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
         throw new Error("Failed to get response");
       }
 
-      const data = await response.json();
+      const trans = ensure.objectWithFields(await response.json(), {
+        response: "",
+      });
 
-      // const t = data?.response ? JSON.parse(data.response) : "";
-      const t = data?.response ?? "";
-
-      // setTranslation(t?.translation ?? "");
-      setTranslation(t);
+      setTranslation(trans.response);
     } catch (error) {
       console.error("Error sending message:", error);
       setTranslation("");
@@ -134,7 +110,7 @@ const Translator: React.FC<TranslatorProps> = ({ className = "" }) => {
         defaultValue={Languages.Undefined}
         options={[
           transform(Languages.Undefined, (l) => ({
-            label: "unknown language",
+            label: "detect language",
             value: l,
           })),
           transform(Languages.Polish, (l) => ({
