@@ -25,7 +25,7 @@ export const TranslatorForm = () => {
         onChange={(val) =>
           translation.setSourceLang(val === "detect" ? undefined : val)
         }
-        options={[...options, { label: "Detect language", value: "detect" }]}
+        options={[...options, { label: "detect", value: "detect" }]}
         className="flex-1"
       />
       <LanguageSelector<Language>
@@ -35,41 +35,43 @@ export const TranslatorForm = () => {
         options={options}
         className="flex-1"
       />
+      <div className="flex items-end justify-end">
+        <Button
+          disabled={
+            translation.isLoading || string.isNullOrWhiteSpace(translation.text)
+          }
+          onClick={translation.translate}
+        >
+          {translation.isLoading ? "Translating..." : "Translate"}
+        </Button>
+      </div>
     </div>
   );
 
   const areas = (
-    <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col gap-4">
       <TextAreaGroup
-        label="Text"
         value={translation.text}
-        onChange={translation.setText}
-        placeholder="Enter text"
+        onChange={(val, key) => {
+          translation.setText(val);
+          if (key === "Enter") {
+            translation.translate();
+          }
+        }}
+        placeholder="Enter text to translate"
         className="flex-1"
         rows={5}
       />
-      <TextAreaGroup
-        label="Translation"
-        value={translation.translation}
-        onChange={() => {}}
-        placeholder="Translated text"
-        readOnly
-        className="flex-1"
-        rows={5}
-      />
-    </div>
-  );
-
-  const button = (
-    <div className="flex justify-end">
-      <Button
-        disabled={
-          translation.isLoading || string.isNullOrWhiteSpace(translation.text)
-        }
-        onClick={translation.translate}
-      >
-        {translation.isLoading ? "Translating..." : "Translate"}
-      </Button>
+      {translation.translation && (
+        <TextAreaGroup
+          value={translation.translation}
+          onChange={() => {}}
+          placeholder="Translation"
+          readOnly
+          className="flex-1"
+          rows={5}
+        />
+      )}
     </div>
   );
 
@@ -77,7 +79,6 @@ export const TranslatorForm = () => {
     <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto p-4">
       {selectors}
       {areas}
-      {button}
     </div>
   );
 };

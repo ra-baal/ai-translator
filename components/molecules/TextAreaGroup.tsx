@@ -1,11 +1,12 @@
 import { cn } from "@/lib/utils";
 import { Label } from "../atoms/shadcn/label";
 import { Textarea } from "../atoms/shadcn/textarea";
+import { useState } from "react";
 
 interface TextAreaGroupProps {
-  label: string;
+  label?: string;
   value: string;
-  onChange: (val: string) => void;
+  onChange: (val: string, lastKey: string | null) => void;
   placeholder?: string;
   readOnly?: boolean;
   className?: string;
@@ -14,7 +15,7 @@ interface TextAreaGroupProps {
 }
 
 export const TextAreaGroup = ({
-  label,
+  label = undefined,
   value,
   onChange,
   placeholder = "",
@@ -23,12 +24,19 @@ export const TextAreaGroup = ({
   rows = undefined,
   disabled = false,
 }: TextAreaGroupProps) => {
+  const [lastKey, setLastKey] = useState<string | null>(null);
+
   return (
     <div className={cn("flex flex-col gap-1 w-full", className)}>
-      <Label className="text-sm md:text-base">{label}</Label>
+      {label && <Label className="text-sm md:text-base">{label}</Label>}
       <Textarea
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          setLastKey(e.key);
+        }}
+        onChange={(e) => {
+          onChange(e.target.value, lastKey);
+        }}
         placeholder={placeholder}
         readOnly={readOnly}
         className="w-full resize-none p-2 border rounded-md text-sm md:text-base"

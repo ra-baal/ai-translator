@@ -3,6 +3,7 @@
 import { RequestBody } from "@/app/api/translate/route";
 import { ensure } from "@/common/ensure";
 import { Language } from "@/common/language";
+import string from "@/common/string";
 import { useState } from "react";
 
 interface UseTranslationArgs {
@@ -63,14 +64,19 @@ export default function useTranslation(
 
       setTranslation(trans.response);
     } catch (error) {
-      setTranslation("");
+      setTranslation("(try again)");
     } finally {
       setIsLoading(false);
     }
   };
 
   const hook: UseTranslation = {
-    setText: setText,
+    setText: (text) => {
+      setText(text);
+      if (string.isNullOrWhiteSpace(text)) {
+        setTranslation("");
+      }
+    },
     translation: translation,
     isLoading: isLoading,
     text: text,

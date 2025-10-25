@@ -28,8 +28,8 @@ export default function createPromptBuilder() {
       const targetLabel = getLangData(args.targetLanguage).labelEN;
 
       const lang = sourceLabel
-        ? `from ${sourceLabel} into ${targetLabel}`
-        : `into ${targetLabel}`;
+        ? `from ${sourceLabel} language into ${targetLabel} language`
+        : `into ${targetLabel} language`;
 
       const context = args.context ? `Context: "${args.context}"` : null;
 
@@ -44,6 +44,7 @@ export default function createPromptBuilder() {
           ? null
           : `- Adapt idioms and phrasing naturally to ${targetLabel}.`,
         context && "- Use context to choose the most accurate translation.",
+        "- Do NOT perform any reasoning, interpretation, or explanation. Translate directly.",
         "- Return only the translation as a single string, with no additional text, labels, or formatting.",
       ]);
 
@@ -52,25 +53,17 @@ export default function createPromptBuilder() {
   };
 }
 
-type InputType = "nothing" | "word" | "phrase" | "sentence" | "text";
+type InputType = "nothing" | "word" | "text";
 
-/**
- * Na podstawie długosci, liczby slow i interpunkcji
- * okresla typ wejscia: word / phrase / sentence / text
- */
 function detectInputType(text: string): InputType {
   const trimmedText = text.trim();
 
   if (trimmedText === "") return "nothing";
 
   const wordCount = trimmedText.split(/\s+/).length;
-  const hasPunctuation = /[.!?]/.test(trimmedText);
-  const endsWithPunctuation = /[.!?]$/.test(trimmedText);
 
   if (wordCount === 1) return "word";
-  if (wordCount <= 4 && !hasPunctuation) return "phrase";
-  if (wordCount <= 20 && hasPunctuation && endsWithPunctuation)
-    return "sentence";
+
   return "text";
 }
 
