@@ -1,82 +1,83 @@
 "use client";
 
-import { useState } from "react";
 import { LanguageSelector } from "../molecules/LanguageSelector";
 import { TextAreaGroup } from "../molecules/TextAreaGroup";
 import { Button } from "../atoms/shadcn/button";
-
-const languageOptions = [
-  { label: "English", value: "en" },
-  { label: "Spanish", value: "es" },
-  { label: "Polish", value: "pl" },
-  // add more languages as needed
-];
+import { AllLanguages, getLangData, Language } from "@/common/language";
+import useTranslation from "@/hooks/useTranslation";
+import string from "@/common/string";
 
 export const TranslatorForm = () => {
-  const [sourceLang, setSourceLang] = useState("en");
-  const [targetLang, setTargetLang] = useState("es");
-  const [inputText, setInputText] = useState("");
-  const [outputText, setOutputText] = useState("");
-  const [loading, setLoading] = useState(false);
+  const translation = useTranslation({
+    targetLang: "pl",
+  });
 
-  const handleTranslate = async () => {
-    if (!inputText.trim()) return;
+  const options = AllLanguages.map((l) => {
+    const ld = getLangData(l);
+    return { label: ld.labelEN, value: l };
+  });
 
-    setLoading(true);
-    try {
-      // MVP: simulate translation
-      await new Promise((resolve) => setTimeout(resolve, 500)); // fake API delay
-      setOutputText(`[${targetLang}] ${inputText}`);
-    } catch (err) {
-      console.error("Translation error:", err);
-      setOutputText("Error translating text.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const selectors = (
+    <div className="flex flex-row gap-4">
+      <LanguageSelector<Language | "detect">
+        label="From"
+        value={translation.sourceLang ?? "detect"}
+        onChange={(val) =>
+          translation.setSourceLang(val === "detect" ? undefined : val)
+        }
+        options={[...options, { label: "Detect language", value: "detect" }]}
+        className="flex-1"
+      />
+      <LanguageSelector<Language>
+        label="To"
+        value={translation.targetLang}
+        onChange={translation.setTargetLang}
+        options={options}
+        className="flex-1"
+      />
+    </div>
+  );
+
+  const areas = (
+    <div className="flex flex-col md:flex-row gap-4">
+      <TextAreaGroup
+        label="Text"
+        value={translation.text}
+        onChange={translation.setText}
+        placeholder="Enter text"
+        className="flex-1"
+        rows={5}
+      />
+      <TextAreaGroup
+        label="Translation"
+        value={translation.translation}
+        onChange={() => {}}
+        placeholder="Translated text"
+        readOnly
+        className="flex-1"
+        rows={5}
+      />
+    </div>
+  );
+
+  const button = (
+    <div className="flex justify-end">
+      <Button
+        disabled={
+          translation.isLoading || string.isNullOrWhiteSpace(translation.text)
+        }
+        onClick={translation.translate}
+      >
+        {translation.isLoading ? "Translating..." : "Translate"}
+      </Button>
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-4 w-full max-w-4xl mx-auto p-4">
-      <div className="flex flex-col md:flex-row gap-4">
-        <LanguageSelector
-          label="From"
-          value={sourceLang}
-          onChange={setSourceLang}
-          options={languageOptions}
-          className="flex-1"
-        />
-        <LanguageSelector
-          label="To"
-          value={targetLang}
-          onChange={setTargetLang}
-          options={languageOptions}
-          className="flex-1"
-        />
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4">
-        <TextAreaGroup
-          label="Input"
-          value={inputText}
-          onChange={setInputText}
-          placeholder="Enter text"
-          className="flex-1"
-        />
-        <TextAreaGroup
-          label="Output"
-          value={outputText}
-          onChange={() => {}}
-          placeholder="Translated text"
-          readOnly
-          className="flex-1"
-        />
-      </div>
-
-      <div className="flex justify-end">
-        <Button onClick={handleTranslate}>
-          {loading ? "Translating..." : "Translate"}
-        </Button>
-      </div>
+      {selectors}
+      {areas}
+      {button}
     </div>
   );
 };

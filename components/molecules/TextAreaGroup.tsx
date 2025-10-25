@@ -9,6 +9,8 @@ interface TextAreaGroupProps {
   placeholder?: string;
   readOnly?: boolean;
   className?: string;
+  rows?: number;
+  disabled?: boolean;
 }
 
 export const TextAreaGroup = ({
@@ -18,6 +20,8 @@ export const TextAreaGroup = ({
   placeholder = "",
   readOnly = false,
   className = "",
+  rows = undefined,
+  disabled = false,
 }: TextAreaGroupProps) => {
   return (
     <div className={cn("flex flex-col gap-1 w-full", className)}>
@@ -28,6 +32,8 @@ export const TextAreaGroup = ({
         placeholder={placeholder}
         readOnly={readOnly}
         className="w-full resize-none p-2 border rounded-md text-sm md:text-base"
+        rows={rows}
+        disabled={disabled}
       />
     </div>
   );

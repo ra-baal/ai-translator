@@ -61,4 +61,4 @@ export const ensure: Ensure = {
 
     return x as T;
   },
-};
+} as const;

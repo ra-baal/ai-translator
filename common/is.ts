@@ -6,19 +6,34 @@ interface Is {
 }
 
 export const is: Is = {
-  obj: function (x): x is Record<string, unknown> {
-    return x && typeof x === "object" && !Array.isArray(x) ? true : false;
+  obj(x): x is Record<string, unknown> {
+    return x !== null && typeof x === "object" && !Array.isArray(x);
   },
 
-  string: function (x): x is string {
+  string(x): x is string {
     return typeof x === "string";
   },
 
-  sameType: function (x, y) {
-    return typeof x === typeof y;
+  sameType(x, y): boolean {
+    const tx = Object.prototype.toString.call(x);
+    const ty = Object.prototype.toString.call(y);
+    return tx === ty;
   },
 
-  array: function (x): x is Array<unknown> {
+  array(x): x is Array<unknown> {
     return Array.isArray(x);
   },
-};
+} as const;
+
+interface Has {
+  key: <Key extends string>(x: unknown, key: Key) => x is Record<Key, unknown>;
+}
+
+export const has: Has = {
+  key: <Key extends string>(
+    x: unknown,
+    key: Key
+  ): x is Record<Key, unknown> => {
+    return is.obj(x) && key in x;
+  },
+} as const;

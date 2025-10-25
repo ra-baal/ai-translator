@@ -1,9 +1,10 @@
 import { Either, left, right } from "@/common/either";
+import { AllLanguages, getLangData, Language } from "@/common/language";
 
 type TranslationArgs = {
   text: string;
-  sourceLanguage?: string;
-  targetLanguage: string;
+  sourceLanguage?: Language;
+  targetLanguage: Language;
   context?: string;
 };
 
@@ -20,22 +21,30 @@ export default function createPromptBuilder() {
         return left("no text to translate");
       }
 
-      const lang = args.sourceLanguage
-        ? `from ${args.sourceLanguage} into ${args.targetLanguage}`
-        : `into ${args.targetLanguage}`;
+      const sourceLabel = args.sourceLanguage
+        ? getLangData(args.sourceLanguage).labelEN
+        : undefined;
 
-      const ctx = args.context ? `Context: "${args.context}"` : null;
+      const targetLabel = getLangData(args.targetLanguage).labelEN;
+
+      const lang = sourceLabel
+        ? `from ${sourceLabel} into ${targetLabel}`
+        : `into ${targetLabel}`;
+
+      const context = args.context ? `Context: "${args.context}"` : null;
 
       const prompt = joinLines([
         "You are a professional translator.",
-        ...(ctx ? [ctx] : []),
+        ...(context ? [context] : []),
         `Translate the following ${type} ${lang}.`,
         `The ${type} to translate: "${args.text}".`,
         "Instructions:",
-        "- Maintain original meaning and tone.",
-        `- Adapt idioms and phrasing naturally to ${args.targetLanguage}.`,
-        "- If context is provided, use it to choose the most accurate translation.",
-        "- Return only the translated text as a single string, with no additional text, labels, or formatting.",
+        type === "word" ? null : "- Maintain original meaning and tone.",
+        type === "word"
+          ? null
+          : `- Adapt idioms and phrasing naturally to ${targetLabel}.`,
+        context && "- Use context to choose the most accurate translation.",
+        "- Return only the translation as a single string, with no additional text, labels, or formatting.",
       ]);
 
       return right(prompt);
@@ -70,12 +79,17 @@ function joinLines(lines: (string | null)[]): string {
 }
 
 function safeArgs(args: TranslationArgs): TranslationArgs {
+  const targetLanguage = AllLanguages.find((x) => x === args.targetLanguage);
+
+  if (!targetLanguage) {
+    throw new Error("Invalid target language.");
+  }
+
   return {
     text: safeText(args.text),
-    sourceLanguage: args.sourceLanguage
-      ? safeText(args.sourceLanguage)
-      : undefined,
-    targetLanguage: safeText(args.targetLanguage),
+    sourceLanguage:
+      AllLanguages.find((x) => x === args.sourceLanguage) ?? undefined,
+    targetLanguage: targetLanguage,
     context: args.context ? safeText(args.context) : undefined,
   };
 }

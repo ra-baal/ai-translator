@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import createPromptBuilder from "../_services/promptBuilder";
+import createPromptBuilder from "../../../services/promptBuilder";
 import { Either, left, right } from "@/common/either";
 import { is } from "@/common/is";
 import { ensure } from "@/common/ensure";
+import { Language, Languages } from "@/common/language";
 
 interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
 }
 
-interface RequestBody {
+export interface RequestBody {
   text: string;
-  targetLanguage: string;
-  sourceLanguage?: string | null;
+  targetLanguage: Language;
+  sourceLanguage?: Language | null;
   context?: string | null;
 }
 
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = ensure.objectWithFields<RequestBody>(await request.json(), {
       text: "",
-      targetLanguage: "",
+      targetLanguage: Languages.English,
     });
 
     const r = require([
