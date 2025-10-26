@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import createPromptBuilder from "../../../services/promptBuilder";
 import { Either, left, right } from "@/common/either";
-import { is } from "@/common/is";
 import { ensure } from "@/common/ensure";
 import { Language, Languages } from "@/common/language";
 
@@ -138,25 +137,4 @@ interface GroqResponse {
       content: string;
     };
   }>;
-}
-
-function ensureGroqResponse(x: unknown): GroqResponse {
-  if (isGroqResponse(x)) {
-    return x;
-  }
-
-  throw new Error("Invalid type");
-}
-
-function isGroqResponse(x: unknown): x is GroqResponse {
-  return (
-    is.obj(x) &&
-    Array.isArray(x.choices) &&
-    x.choices.every(
-      (choice) =>
-        is.obj(choice) &&
-        is.obj(choice.message) &&
-        typeof choice.message.content === "string"
-    )
-  );
 }
